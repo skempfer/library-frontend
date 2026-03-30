@@ -8,24 +8,26 @@ const Authors = (props) => {
   const [editAuthor] = useMutation(EDIT_AUTHOR, {
     refetchQueries: [{ query: ALL_AUTHORS }],
   })
+  const authors = props.authors
+  const activeAuthor = authors.some((author) => author.name === selectedAuthor)
+    ? selectedAuthor
+    : (authors[0]?.name ?? '')
 
   if (!props.show) {
     return null
   }
 
-  const authors = props.authors
-
   const submit = async (event) => {
     event.preventDefault()
 
-    if (!selectedAuthor || !born) {
+    if (!activeAuthor || !born) {
       return
     }
 
     try {
       await editAuthor({
         variables: {
-          name: selectedAuthor,
+          name: activeAuthor,
           setBornTo: Number(born),
         },
       })
@@ -34,7 +36,6 @@ const Authors = (props) => {
       return
     }
 
-    setSelectedAuthor('')
     setBorn('')
   }
 
@@ -62,11 +63,12 @@ const Authors = (props) => {
 
       <form onSubmit={submit}>
         <div>
+          name
           <select
-            value={selectedAuthor}
+            value={activeAuthor}
             onChange={({ target }) => setSelectedAuthor(target.value)}
+            disabled={!authors.length}
           >
-            <option value="">select author</option>
             {authors.map((author) => (
               <option key={author.name} value={author.name}>
                 {author.name}
