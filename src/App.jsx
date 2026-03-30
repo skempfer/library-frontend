@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { useApolloClient, useQuery } from '@apollo/client/react'
+import { useApolloClient, useQuery, useSubscription } from '@apollo/client/react'
 import Authors from './components/Authors'
 import Books from './components/Books'
 import LoginForm from './components/LoginForm'
 import NewBook from './components/NewBook'
 import Recommended from './components/Recommended'
-import { ALL_AUTHORS, ALL_BOOKS } from './queries'
+import { ALL_AUTHORS, ALL_BOOKS, BOOK_ADDED } from './queries'
 
 const App = () => {
   const [page, setPage] = useState('authors')
@@ -13,6 +13,15 @@ const App = () => {
   const client = useApolloClient()
   const authorsResult = useQuery(ALL_AUTHORS)
   const booksResult = useQuery(ALL_BOOKS)
+  useSubscription(BOOK_ADDED, {
+    onData: ({ data }) => {
+      const addedBook = data.data?.bookAdded
+
+      if (addedBook) {
+        window.alert(`new book added: ${addedBook.title}`)
+      }
+    },
+  })
 
   if (authorsResult.loading || booksResult.loading) {
     return <div>loading data from GraphQL server...</div>

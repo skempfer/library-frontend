@@ -1,8 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client'
+import { ApolloClient, HttpLink, InMemoryCache, split } from '@apollo/client'
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
 import { setContext } from '@apollo/client/link/context'
 import { ApolloProvider } from '@apollo/client/react'
+import { getMainDefinition } from '@apollo/client/utilities'
+import { createClient } from 'graphql-ws'
 import App from './App.jsx'
 
 const endpointFromEnv = import.meta.env.VITE_GRAPHQL_URI
@@ -45,6 +48,14 @@ const resolveGraphqlUri = async () => {
   return defaultEndpoints[1]
 }
 
+const toWsUri = (httpUri) => {
+  if (httpUri.startsWith('https://')) {
+    return httpUri.replace('https://', 'wss://')
+  }
+
+  return httpUri.replace('http://', 'ws://')
+}
+
 const rootElement = document.getElementById('root')
 
 if (!rootElement) {
@@ -67,6 +78,18 @@ const root = createRoot(rootElement)
 
 resolveGraphqlUri().then((uri) => {
   const httpLink = new HttpLink({ uri })
+  const wsLink = new GraphQLWsLink(
+    createClient({
+      url: toWsUri(uri),
+      connectionParams: () => {
+        const token = localStorage.getItem('library-user-token')
+
+        return {
+          authorization: token ? `Bearer ${token}` : '',
+        }
+      },
+    })
+  )
   const authLink = setContext((_, { headers }) => {
     const token = localStorage.getItem('library-user-token')
 
@@ -78,8 +101,18 @@ resolveGraphqlUri().then((uri) => {
     }
   })
 
+  const splitLink = split(
+    ({ query }) => {
+      const definition = getMainDefinition(query)
+
+      return definition.kind === 'OperationDefinition' && definition.operation === 'subscription'
+    },
+    wsLink,
+    authLink.concat(httpLink)
+  )
+
   const client = new ApolloClient({
-    link: authLink.concat(httpLink),
+    link: splitLink,
     cache: new InMemoryCache(),
     defaultOptions: {
       watchQuery: {
