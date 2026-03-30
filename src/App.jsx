@@ -11,6 +11,31 @@ const App = () => {
   const [page, setPage] = useState('authors')
   const [token, setToken] = useState(localStorage.getItem('library-user-token'))
   const client = useApolloClient()
+
+  const updateBooksCache = (queryVariables, addedBook) => {
+    client.cache.updateQuery(
+      {
+        query: ALL_BOOKS,
+        variables: queryVariables,
+      },
+      (data) => {
+        if (!data?.allBooks) {
+          return data
+        }
+
+        const alreadyInCache = data.allBooks.some((book) => book.id === addedBook.id)
+        if (alreadyInCache) {
+          return data
+        }
+
+        return {
+          ...data,
+          allBooks: data.allBooks.concat(addedBook),
+        }
+      }
+    )
+  }
+
   const authorsResult = useQuery(ALL_AUTHORS)
   const booksResult = useQuery(ALL_BOOKS)
   useSubscription(BOOK_ADDED, {
@@ -18,6 +43,12 @@ const App = () => {
       const addedBook = data.data?.bookAdded
 
       if (addedBook) {
+        updateBooksCache({}, addedBook)
+        updateBooksCache({ genre: null }, addedBook)
+        addedBook.genres.forEach((genre) => {
+          updateBooksCache({ genre }, addedBook)
+        })
+
         window.alert(`new book added: ${addedBook.title}`)
       }
     },
