@@ -1,56 +1,25 @@
 import { useState } from 'react'
+import { useQuery } from '@apollo/client/react'
 import Authors from './components/Authors'
 import Books from './components/Books'
 import NewBook from './components/NewBook'
+import { ALL_AUTHORS, ALL_BOOKS } from './queries'
 
 const App = () => {
   const [page, setPage] = useState('authors')
-  const authors = [
-    { id: '1', name: 'Robert Martin', born: 1952, bookCount: 2 },
-    { id: '2', name: 'Martin Fowler', born: 1963, bookCount: 1 },
-    { id: '3', name: 'Fyodor Dostoevsky', born: 1821, bookCount: 2 },
-    { id: '4', name: 'Joshua Kerievsky', born: null, bookCount: 1 },
-    { id: '5', name: 'Sandi Metz', born: null, bookCount: 1 },
-  ]
-  const books = [
-    { id: '1', title: 'Clean Code', author: 'Robert Martin', published: 2008 },
-    {
-      id: '2',
-      title: 'Agile software development',
-      author: 'Robert Martin',
-      published: 2002,
-    },
-    {
-      id: '3',
-      title: 'Refactoring, edition 2',
-      author: 'Martin Fowler',
-      published: 2018,
-    },
-    {
-      id: '4',
-      title: 'Refactoring to patterns',
-      author: 'Joshua Kerievsky',
-      published: 2008,
-    },
-    {
-      id: '5',
-      title: 'Practical Object-Oriented Design, An Agile Primer Using Ruby',
-      author: 'Sandi Metz',
-      published: 2012,
-    },
-    {
-      id: '6',
-      title: 'Crime and punishment',
-      author: 'Fyodor Dostoevsky',
-      published: 1866,
-    },
-    {
-      id: '7',
-      title: 'The Demon',
-      author: 'Fyodor Dostoevsky',
-      published: 1872,
-    },
-  ]
+  const authorsResult = useQuery(ALL_AUTHORS)
+  const booksResult = useQuery(ALL_BOOKS)
+
+  if (authorsResult.loading || booksResult.loading) {
+    return <div>loading data from GraphQL server...</div>
+  }
+
+  if (authorsResult.error || booksResult.error) {
+    return <div>could not connect to GraphQL server (http://localhost:4000/graphql)</div>
+  }
+
+  const authors = authorsResult.data?.allAuthors ?? []
+  const books = booksResult.data?.allBooks ?? []
 
   return (
     <div>
