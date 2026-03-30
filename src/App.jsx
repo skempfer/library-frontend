@@ -12,6 +12,45 @@ const App = () => {
     { id: '4', name: 'Joshua Kerievsky', born: null, bookCount: 1 },
     { id: '5', name: 'Sandi Metz', born: null, bookCount: 1 },
   ]
+  const books = [
+    { id: '1', title: 'Clean Code', author: 'Robert Martin', published: 2008 },
+    {
+      id: '2',
+      title: 'Agile software development',
+      author: 'Robert Martin',
+      published: 2002,
+    },
+    {
+      id: '3',
+      title: 'Refactoring, edition 2',
+      author: 'Martin Fowler',
+      published: 2018,
+    },
+    {
+      id: '4',
+      title: 'Refactoring to patterns',
+      author: 'Joshua Kerievsky',
+      published: 2008,
+    },
+    {
+      id: '5',
+      title: 'Practical Object-Oriented Design, An Agile Primer Using Ruby',
+      author: 'Sandi Metz',
+      published: 2012,
+    },
+    {
+      id: '6',
+      title: 'Crime and punishment',
+      author: 'Fyodor Dostoevsky',
+      published: 1866,
+    },
+    {
+      id: '7',
+      title: 'The Demon',
+      author: 'Fyodor Dostoevsky',
+      published: 1872,
+    },
+  ]
 
   return (
     <div>
@@ -23,7 +62,7 @@ const App = () => {
 
       <Authors show={page === 'authors'} authors={authors} />
 
-      <Books show={page === 'books'} />
+      <Books show={page === 'books'} books={books} />
 
       <NewBook show={page === 'add'} />
     </div>
