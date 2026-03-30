@@ -25,6 +25,11 @@ const Books = (props) => {
   const books = booksResult.data?.allBooks ?? []
   const genres = [...new Set(allBooks.flatMap((book) => book.genres))]
 
+  const selectGenre = (genre) => {
+    setSelectedGenre(genre)
+    void booksResult.refetch({ genre: genre === 'all genres' ? null : genre })
+  }
+
   return (
     <div>
       <h2>books</h2>
@@ -50,11 +55,11 @@ const Books = (props) => {
 
       <div>
         {genres.map((genre) => (
-          <button key={genre} onClick={() => setSelectedGenre(genre)}>
+          <button key={genre} onClick={() => selectGenre(genre)}>
             {genre}
           </button>
         ))}
-        <button onClick={() => setSelectedGenre('all genres')}>all genres</button>
+        <button onClick={() => selectGenre('all genres')}>all genres</button>
       </div>
     </div>
   )
