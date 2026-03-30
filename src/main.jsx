@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client'
+import { setContext } from '@apollo/client/link/context'
 import { ApolloProvider } from '@apollo/client/react'
 import App from './App.jsx'
 
@@ -65,8 +66,20 @@ window.addEventListener('unhandledrejection', (event) => {
 const root = createRoot(rootElement)
 
 resolveGraphqlUri().then((uri) => {
+  const httpLink = new HttpLink({ uri })
+  const authLink = setContext((_, { headers }) => {
+    const token = localStorage.getItem('library-user-token')
+
+    return {
+      headers: {
+        ...headers,
+        authorization: token ? `Bearer ${token}` : '',
+      },
+    }
+  })
+
   const client = new ApolloClient({
-    link: new HttpLink({ uri }),
+    link: authLink.concat(httpLink),
     cache: new InMemoryCache(),
     defaultOptions: {
       watchQuery: {
